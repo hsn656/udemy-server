@@ -6,14 +6,15 @@ class AuthController {
         this.authService = authService;
     }
 
-    getUsers = async (req,res)=>{
-        const users= await this.authService.getUsers("hsn@hsn.com");
-        res.json(users);
+    findByEmail = async (req,res)=>{
+        const user= await this.authService.findByEmail("hsn@hsn.com");
+        res.json(user);
     }
 
     login = async (req, res, next)=> {
         try {
-            const user = await this.authService.login(req.body);
+            const {email,password}= req.body;
+            const user = await this.authService.login(email,password);
             res.send(user);
         } catch (err) {
             next(err);
@@ -22,7 +23,8 @@ class AuthController {
 
     register = async (req, res, next)=> {
         try {
-            const user = await this.authService.register(req.body);
+            const {firstName,email,password,lastName} = req.body;
+            const user = await this.authService.register(firstName,lastName,email, password);
             res.send(user);
         } catch (err) {
             next(err);
