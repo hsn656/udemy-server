@@ -1,6 +1,5 @@
 const ApiError = require('../error/api-error');
 const User = require('../models/user');
-const cryptoJS = require("crypto-js");
 const bcrypt = require("bcryptjs");
 const jwt = require('jsonwebtoken');
 
@@ -14,13 +13,13 @@ class AuthService{
   login = async(email, password)=>{
     const user = await User.findByEmail(email);
     if(!user){
-      throw ApiError.badRequest('email or password is incorrect');
+      throw ApiError.badRequest({error:'email or password is incorrect'});
     }
 
     const isPasswordValid = await this.#isPasswordValid(password,user);
     
     if(!isPasswordValid){
-      throw ApiError.badRequest('email or password is incorrect');
+      throw ApiError.badRequest({error:'email or password is incorrect'});
     }
 
     const token = await this.#generateToken(user);
@@ -42,7 +41,8 @@ class AuthService{
         firstName: firstName,
         lastName:lastName
       });
-      return user;
+      const token = await this.#generateToken(user);
+      return {accessToken: token};
     } catch (error) {
       throw ApiError.internal(error.message);
     }
@@ -66,7 +66,8 @@ class AuthService{
       id: user.id,
       email: user.email,
       firstName: user.firstName,
-      lastName: user.lastName
+      lastName: user.lastName,
+      roles: user.roles
     };
     const token = jwt.sign(payload, process.env.JWT_SECRET,{ expiresIn: "3d" })
     return token;
