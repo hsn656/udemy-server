@@ -13,16 +13,16 @@ class AuthService{
   login = async(email, password)=>{
     const user = await User.findByEmail(email);
     if(!user){
-      throw ApiError.badRequest({error:'email or password is incorrect'});
+      throw ApiError.badRequest('email or password is incorrect');
     }
 
-    const isPasswordValid = await this.#isPasswordValid(password,user);
+    const isPasswordValid = await this.isPasswordValid(password,user);
     
     if(!isPasswordValid){
-      throw ApiError.badRequest({error:'email or password is incorrect'});
+      throw ApiError.badRequest('email or password is incorrect');
     }
 
-    const token = await this.#generateToken(user);
+    const token = await this.generateToken(user);
 
     return {accessToken: token};
   }
@@ -33,7 +33,7 @@ class AuthService{
       throw ApiError.badRequest('email already exists');
     }
 
-    const hashedPassword = await this.#hashPassword(password);
+    const hashedPassword = await this.hashPassword(password);
     try {
       const user = await User.create({
         email: email,
@@ -41,7 +41,7 @@ class AuthService{
         firstName: firstName,
         lastName:lastName
       });
-      const token = await this.#generateToken(user);
+      const token = await this.generateToken(user);
       return {accessToken: token};
     } catch (error) {
       throw ApiError.internal(error.message);
@@ -53,15 +53,15 @@ class AuthService{
     return await User.findByEmail(email);
   }
 
-  #hashPassword = async (password)=>{
+  hashPassword = async (password)=>{
     return await bcrypt.hash(password, 10);
   }
 
-  #isPasswordValid = async(password,user)=>{
+  isPasswordValid = async(password,user)=>{
     return await bcrypt.compare(password,user.password);
   }
 
-  #generateToken = async (user)=>{
+  generateToken = async (user)=>{
     const payload = {
       id: user.id,
       email: user.email,
