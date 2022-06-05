@@ -6,32 +6,42 @@ const AuthService = require('../../src/service/auth');
 
 
 describe('Auth Service', () => {
-        
-    let service;
-    let users=[
-        {
-            _id: '5d7b9f9f8f9f9f9f9f9f9f9',
-            email: 'user@example.com',
-            password: '$2a$10$4Xq/X.X.X.X.X.X.X.X.X.X.X.X.X.X.X.X.X.X.X.X.X.X.',
-            firstName: 'John',
-            lastName: 'Doe'
-        }
-    ];
-
-    sinon.stub(User, 'findByEmail').callsFake((email) => {
-        return new Promise((resolve, reject) => {
-            const user = users.find(u => u.email === email);
-            if (user) {
-                resolve(user);
-            } else {
-                resolve(null);
-            }
-    });
-    });
-
-    beforeEach(() => {
+    
+    let service,users;
+    before(() => {
         service = new AuthService();
-    });
+        users=[];
+    
+        sinon.stub(User, 'findByEmail').callsFake((email) => {
+            return new Promise((resolve, reject) => {
+                const user = users.find(u => u.email === email);
+                if (user) {
+                    resolve(user);
+                } else {
+                    resolve(null);
+                }
+        });
+        });
+    
+        sinon.stub(User, 'create').callsFake((user) => {
+            return new Promise((resolve, reject) => {
+                users.push(user);
+                resolve(user);
+            });
+        });
+    
+        sinon.stub(service, 'generateToken').resolves('token');    
+    })
+
+    afterEach(() => {
+        users=[];
+    })
+
+    after(() => {
+        User.findByEmail.restore();
+        User.create.restore();
+        service.generateToken.restore();
+    })
 
     it('should be defined', () => {
         expect(service).not.to.be.undefined;
@@ -50,6 +60,7 @@ describe('Auth Service', () => {
         it("should throw error if password is incorrect",async ()=>{
             sinon.stub(service, 'isPasswordValid').resolves(false);
             try{
+                users.push({email:'hsn@hsn.com'});
                 await service.login('hsn@hsn.com',"password");
             }catch(error){
                 expect(error.message).to.equal('email or password is incorrect');
@@ -59,13 +70,33 @@ describe('Auth Service', () => {
 
         it("should return access token",async ()=>{
             sinon.stub(service, 'isPasswordValid').resolves(true);
-            sinon.stub(service, 'generateToken').resolves('token');
-            const result = await service.login('user@example.com',"password");
-            expect(result.accessToken).to.equal('token');
-
+            users.push({email:'hsn@hsn.com'});
+            const result = await service.login('hsn@hsn.com',"password");
+            expect(result.accessToken).to.be.string;
             service.isPasswordValid.restore();
-            service.generateToken.restore();
         })
+
+    });
+
+    describe('register', () => {
+
+        it("should throw error if email already exists",async ()=>{
+            users.push({email:'hsn@hsn.com'});
+            try{
+                await service.register('firstname','lastname','hsn@hsn.com','password');
+
+                //to fail test if no catch error
+                expect(true).to.be.false;
+            }
+            catch(error){
+                expect(error.message).to.equal('email already exists');
+            }
+        })
+
+        it("register successfully",async ()=>{
+            const result = await service.register('firstname','lastname','hsn@hsn.com','password');
+            expect(result.accessToken).to.be.string;
+        });
 
     });
 
