@@ -6,18 +6,31 @@ const AuthService = require('../../src/service/auth');
 
 
 describe('Auth Service', () => {
-
-    const num1=1;
-    const num2=2;
-
-    it('should add two numbers', () => {
-        expect(num1+num2).to.equal(3);
-    });
         
     let service;
-    
+    let users=[
+        {
+            _id: '5d7b9f9f8f9f9f9f9f9f9f9',
+            email: 'user@example.com',
+            password: '$2a$10$4Xq/X.X.X.X.X.X.X.X.X.X.X.X.X.X.X.X.X.X.X.X.X.X.',
+            firstName: 'John',
+            lastName: 'Doe'
+        }
+    ];
+
+    sinon.stub(User, 'findByEmail').callsFake((email) => {
+        return new Promise((resolve, reject) => {
+            const user = users.find(u => u.email === email);
+            if (user) {
+                resolve(user);
+            } else {
+                resolve(null);
+            }
+    });
+    });
+
     beforeEach(() => {
-        service = new AuthService();  
+        service = new AuthService();
     });
 
     it('should be defined', () => {
@@ -27,47 +40,29 @@ describe('Auth Service', () => {
     describe('login', () => {
 
         it("should throw error if email does not exist",async ()=>{
-            sinon.stub(User, 'findByEmail').resolves(null);
             try{
                 await service.login('hsn@hsn.com',"password");
             }catch(error){
                 expect(error.message).to.equal('email or password is incorrect');
             }
-            User.findByEmail.restore();
         })
 
         it("should throw error if password is incorrect",async ()=>{
-            sinon.stub(User, 'findByEmail').resolves({
-                email: 'hsn@hsn.com',
-                password: 'password',
-                firstName: 'hsn',
-                lastName: 'hsn'
-            });
-
             sinon.stub(service, 'isPasswordValid').resolves(false);
             try{
                 await service.login('hsn@hsn.com',"password");
             }catch(error){
                 expect(error.message).to.equal('email or password is incorrect');
             }
-            User.findByEmail.restore();
             service.isPasswordValid.restore();
         })
 
         it("should return access token",async ()=>{
-            sinon.stub(User, 'findByEmail').resolves({
-                email: 'hsn@hsn.com',
-                password: 'password',
-                firstName: 'hsn',
-                lastName: 'hsn'         
-            });
-
             sinon.stub(service, 'isPasswordValid').resolves(true);
             sinon.stub(service, 'generateToken').resolves('token');
-            const result = await service.login('hsn@hsn.com',"password");
+            const result = await service.login('user@example.com',"password");
             expect(result.accessToken).to.equal('token');
 
-            User.findByEmail.restore();
             service.isPasswordValid.restore();
             service.generateToken.restore();
         })
