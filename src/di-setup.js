@@ -1,6 +1,8 @@
 const awilix = require('awilix');
 const AuthController = require('./controller/auth');
+const CourseController = require('./controller/course');
 const AuthService = require('./service/auth');
+const CourseService = require('./service/course');
 
 
 const container = awilix.createContainer({
@@ -13,9 +15,11 @@ function setup() {
 
     //controllers    
     authController: awilix.asClass(AuthController),
+    courseController: awilix.asClass(CourseController),
 
     // services
     authService: awilix.asClass(AuthService),
+    courseService: awilix.asClass(CourseService),
 
   });
 }

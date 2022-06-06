@@ -1,6 +1,3 @@
-const ApiError = require('../error/api-error');
-const AuthService = require('../service/auth');
-
 class AuthController {
     constructor({ authService }) {
         this.authService = authService;
