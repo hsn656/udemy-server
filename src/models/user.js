@@ -6,13 +6,14 @@ const userSchema = new mongoose.Schema(
     lastName: { type: String, required: true },
     email: { type: String, required: true },
     password: { type: String, required: true },
-    roles: { type: Array, default: ['student'] },
+    roles: { type: Array, default: ["student"] },
+    image: { type: String, required: true },
   },
   { timestamps: true }
 );
 
 userSchema.statics.findByEmail = function (email) {
-  return this.findOne({email});
-}
+  return this.findOne({ email });
+};
 
 module.exports = mongoose.model("User", userSchema);

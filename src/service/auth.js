@@ -1,78 +1,76 @@
-const ApiError = require('../error/api-error');
-const User = require('../models/user');
+const ApiError = require("../error/api-error");
+const User = require("../models/user");
 const bcrypt = require("bcryptjs");
-const jwt = require('jsonwebtoken');
+const jwt = require("jsonwebtoken");
 
+class AuthService {
+  constructor() {}
 
-
-
-class AuthService{
-  constructor(){
-  }
-
-  login = async(email, password)=>{
+  login = async (email, password) => {
     const user = await User.findByEmail(email);
-    if(!user){
-      throw ApiError.badRequest('email or password is incorrect');
+    if (!user) {
+      throw ApiError.badRequest("email or password is incorrect");
     }
 
-    const isPasswordValid = await this.isPasswordValid(password,user);
-    
-    if(!isPasswordValid){
-      throw ApiError.badRequest('email or password is incorrect');
+    const isPasswordValid = await this.isPasswordValid(password, user);
+
+    if (!isPasswordValid) {
+      throw ApiError.badRequest("email or password is incorrect");
     }
 
     const token = await this.generateToken(user);
 
-    return {accessToken: token};
-  }
+    return { accessToken: token };
+  };
 
-  register = async (firstName,lastName,email, password)=>{
+  register = async (firstName, lastName, email, password, image) => {
     const alreadyRegisterUser = await User.findByEmail(email);
-    if(alreadyRegisterUser){
-      throw ApiError.badRequest('email already exists');
+    if (alreadyRegisterUser) {
+      throw ApiError.badRequest("email already exists");
     }
 
     const hashedPassword = await this.hashPassword(password);
     try {
       const user = await User.create({
-        email: email,
+        email,
         password: hashedPassword,
-        firstName: firstName,
-        lastName:lastName
+        firstName,
+        lastName,
+        image,
       });
       const token = await this.generateToken(user);
-      return {accessToken: token};
+      return { accessToken: token };
     } catch (error) {
       throw ApiError.internal(error.message);
     }
+  };
 
-  }
-
-  findByEmail = async (email)=>{
+  findByEmail = async (email) => {
     return await User.findByEmail(email);
-  }
+  };
 
-  hashPassword = async (password)=>{
+  hashPassword = async (password) => {
     return await bcrypt.hash(password, 10);
-  }
+  };
 
-  isPasswordValid = async(password,user)=>{
-    return await bcrypt.compare(password,user.password);
-  }
+  isPasswordValid = async (password, user) => {
+    return await bcrypt.compare(password, user.password);
+  };
 
-  generateToken = async (user)=>{
+  generateToken = async (user) => {
     const payload = {
-      id: user.id,
+      id: user._id,
       email: user.email,
       firstName: user.firstName,
       lastName: user.lastName,
-      roles: user.roles
+      roles: user.roles,
+      image: user.image,
     };
-    const token = jwt.sign(payload, process.env.JWT_SECRET,{ expiresIn: "3d" })
+    const token = jwt.sign(payload, process.env.JWT_SECRET, {
+      expiresIn: "3d",
+    });
     return token;
-  }
-
+  };
 }
 
 module.exports = AuthService;
