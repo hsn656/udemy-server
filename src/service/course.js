@@ -7,39 +7,32 @@ class CourseService {
   constructor() {}
 
   findAll = async () => {
-    try {
-      const courses = await Course.find(
-        {},
-        {
-          sections: 0,
-        }
-      );
-      return courses;
-    } catch (err) {
-      throw ApiError.internal(err.message);
-    }
+    const courses = await Course.find(
+      {},
+      {
+        sections: 0,
+      }
+    );
+    return courses;
   };
 
   findById = async (id) => {
-    try {
-      const course = await Course.findById(
-        { _id: id },
-        {
-          sections: {
-            items: {
-              uri: 0,
-              quiz: 0,
-            },
+    const course = await Course.findById(
+      { _id: id },
+      {
+        sections: {
+          items: {
+            uri: 0,
+            quiz: 0,
           },
-        }
-      );
-      if (!course) {
-        throw ApiError.notFound("Course not found");
+        },
       }
-      return course;
-    } catch (err) {
-      throw ApiError.internal(err.message);
+    );
+    if (!course) {
+      throw ApiError.notFound("Course not found");
     }
+
+    return course;
   };
 
   create = async (course, user) => {
@@ -50,30 +43,15 @@ class CourseService {
         image: user.image,
       },
     });
-    try {
-      return await Course.create(course);
-    } catch (err) {
-      throw ApiError.internal(err.message);
-    }
+    return await Course.create(course);
   };
 
   createSection = async (courseId, section) => {
-    try {
-      const course = await Course.findById(courseId);
-      if (!course) {
-        throw ApiError.notFound("Course not found");
-      }
+    const course = await this.findById(courseId);
 
-      if (course.creator.id !== user.id) {
-        throw ApiError.forbidden("You are not the owener of this course");
-      }
-
-      course.sections.push(section);
-      await course.save();
-      return course.sections;
-    } catch (err) {
-      throw ApiError.internal(err.message);
-    }
+    course.sections.push(section);
+    await course.save();
+    return course.sections;
   };
 }
 

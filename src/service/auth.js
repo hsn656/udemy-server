@@ -1,10 +1,13 @@
 const ApiError = require("../error/api-error");
 const User = require("../models/user");
+const Course = require("../models/course");
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 
 class AuthService {
-  constructor() {}
+  constructor({ courseService }) {
+    this.courseService = courseService;
+  }
 
   login = async (email, password) => {
     const user = await User.findByEmail(email);
@@ -30,18 +33,21 @@ class AuthService {
     }
 
     const hashedPassword = await this.hashPassword(password);
-    try {
-      const user = await User.create({
-        email,
-        password: hashedPassword,
-        firstName,
-        lastName,
-        image,
-      });
-      const token = await this.generateToken(user);
-      return { accessToken: token };
-    } catch (error) {
-      throw ApiError.internal(error.message);
+    const user = await User.create({
+      email,
+      password: hashedPassword,
+      firstName,
+      lastName,
+      image,
+    });
+    const token = await this.generateToken(user);
+    return { accessToken: token };
+  };
+
+  verifyCourseOwner = async (courseId, userId) => {
+    const course = await this.courseService.findById(courseId);
+    if (course.creator.id !== userId) {
+      throw ApiError.forbidden("You are not the owner of this course");
     }
   };
 

@@ -1,6 +1,7 @@
 class CourseController {
-  constructor({ courseService }) {
+  constructor({ courseService, authService }) {
     this.courseService = courseService;
+    this.authService = authService;
   }
 
   findAll = async (req, res, next) => {
@@ -32,10 +33,11 @@ class CourseController {
 
   createSection = async (req, res, next) => {
     try {
+      await this.authService.verifyCourseOwner(req.params.id, req.user.id);
+
       const course = await this.courseService.createSection(
         req.params.id,
-        req.body,
-        req.user
+        req.body
       );
       res.json(course);
     } catch (err) {
