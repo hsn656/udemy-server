@@ -7,7 +7,7 @@ const AuthService = require("../../src/service/auth");
 describe("Auth Service", () => {
   let service, users;
   before(() => {
-    service = new AuthService();
+    service = new AuthService({});
     users = [];
 
     sinon.stub(User, "findByEmail").callsFake((email) => {
