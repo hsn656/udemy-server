@@ -29,6 +29,19 @@ class CourseController {
       next(err);
     }
   };
+
+  createSection = async (req, res, next) => {
+    try {
+      const course = await this.courseService.createSection(
+        req.params.id,
+        req.body,
+        req.user
+      );
+      res.json(course);
+    } catch (err) {
+      next(err);
+    }
+  };
 }
 
 module.exports = CourseController;

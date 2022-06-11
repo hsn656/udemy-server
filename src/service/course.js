@@ -16,7 +16,7 @@ class CourseService {
       );
       return courses;
     } catch (err) {
-      throw ApiError.internalServerError(err.message);
+      throw ApiError.internal(err.message);
     }
   };
 
@@ -38,7 +38,7 @@ class CourseService {
       }
       return course;
     } catch (err) {
-      throw ApiError.internalServerError(err.message);
+      throw ApiError.internal(err.message);
     }
   };
 
@@ -52,6 +52,25 @@ class CourseService {
     });
     try {
       return await Course.create(course);
+    } catch (err) {
+      throw ApiError.internal(err.message);
+    }
+  };
+
+  createSection = async (courseId, section) => {
+    try {
+      const course = await Course.findById(courseId);
+      if (!course) {
+        throw ApiError.notFound("Course not found");
+      }
+
+      if (course.creator.id !== user.id) {
+        throw ApiError.forbidden("You are not the owener of this course");
+      }
+
+      course.sections.push(section);
+      await course.save();
+      return course.sections;
     } catch (err) {
       throw ApiError.internal(err.message);
     }

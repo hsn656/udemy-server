@@ -59,7 +59,7 @@ class AuthService {
 
   generateToken = async (user) => {
     const payload = {
-      id: user._id,
+      id: user._id.toString(),
       email: user.email,
       firstName: user.firstName,
       lastName: user.lastName,

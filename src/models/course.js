@@ -19,7 +19,6 @@ const courseSchema = new mongoose.Schema(
     sections: {
       type: [
         {
-          id: { type: mongoose.Schema.Types.ObjectId },
           name: { type: String, required: true },
           items: {
             type: [

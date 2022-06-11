@@ -19,6 +19,10 @@ class ApiError {
   static unAuthorized(msg) {
     return new ApiError(401, msg);
   }
+
+  static forbidden(msg) {
+    return new ApiError(403, msg);
+  }
 }
 
 module.exports = ApiError;
