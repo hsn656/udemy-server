@@ -46,7 +46,8 @@ class AuthService {
 
   verifyCourseOwner = async (courseId, userId) => {
     const course = await this.courseService.findById(courseId);
-    if (course.creator.id !== userId) {
+
+    if (course.creator.id.toString() !== userId) {
       throw ApiError.forbidden("You are not the owner of this course");
     }
   };
